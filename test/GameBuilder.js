@@ -17,7 +17,6 @@ class GameBuilder {
             })
         })
 
-        // will allow us to chain methods
         return this
     }
 

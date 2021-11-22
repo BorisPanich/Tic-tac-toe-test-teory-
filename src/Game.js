@@ -1,58 +1,60 @@
-export default class Game {
+import cloneDeep from 'lodash/cloneDeep'
 
-    constructor() {
-        this._userMoveSymbol = 'x'
-        this._computerMoveSymbol = 'o'
+import {
+    userName,
+    computerName,
+    userMoveSymbol,
+    computerMoveSymbol,
+    initialGameBoard,
+} from './const'
+
+
+export default class Game {
+    constructor(board) {
+        this._userName = userName
+        this._computerName = computerName
+
+        this._userMoveSymbol = userMoveSymbol
+        this._computerMoveSymbol = computerMoveSymbol
+
         this._fieldSize = 3
-        this._userName = 'user'
-        this._computerName = 'computer'
         this._history = []
-        this._board = [
-            ['', '', ''],
-            ['', '', ''],
-            ['', '', '']
-        ]
+
+        this._board = board || cloneDeep(initialGameBoard)
     }
 
     getState() {
-        // возварт текущего состояния
         return this._board
     }
+
+    getSize() {
+        return this._fieldSize
+    }
+
+    getMoveHistory() {
+        return this._history
+    }
+
+    clear() {
+        this._history = []
+        this._board = cloneDeep(initialGameBoard)
+    }
+
     acceptUserMove(x, y) {
-        if (this._board[x][y]) {
-            throw new Error('cell is already taken')
-            return
-        }
         if (!this._isCellFree(x, y)) {
             return this._throwException('cell is already taken')
         }
 
         this._updateHistory(this._userName, x, y)
-
-        // изменение только левой верхней клетки
         this._updateBoard(x, y)
     }
 
     createComputerMove() {
-        // this._board[0][0] = 'o'     // нолик в верхнюю левую клетку
-        const freeCells = this._board.reduce((total, row) =>
-            row.reduce((count, el) =>
-                el === '' ? ++count : count, total), 0)
-
         if (this._getFreeCellsCount() === 0) {
             return this._throwException('no cells available')
         }
 
-        if (!freeCells) return
-
-        let x = this._getRandomCoordinate()
-        let y = this._getRandomCoordinate()
-
-        while (!!this._board[x][y]) {
-            x = this._getRandomCoordinate()
-            y = this._getRandomCoordinate()
-        }
-
+        const [x, y] = this._getFreeRandomCoordinates()
         this._updateHistory(this._computerName, x, y)
         this._updateBoard(x, y, {
             symbol: this._computerMoveSymbol
@@ -60,39 +62,54 @@ export default class Game {
     }
 
     isWinner(player) {
-        const symbol = player === this._userName
-            ? this._userMoveSymbol
-            : this._computerMoveSymbol
+        const symbol = this._getSymbolForPlayer(player)
+        const range = [...Array(this._fieldSize).keys()]
+        const isEqual = this._checkCellEqual(symbol)
 
-        const win = [...Array(this._fieldSize).keys()].reduce((res, i) => {
-            return this._board[i][0] === symbol
-                && this._board[i][1] === symbol
-                && this._board[i][2] === symbol
-                || res
-        }, false)
+        const horizontal = range.reduce((res, i) =>
+            isEqual(i, 0) && isEqual(i, 1) && isEqual(i, 2) || res, false)
 
-        return win
+        const vertical = range.reduce((res, i) =>
+            isEqual(0, i) && isEqual(1, i) && isEqual(2, i) || res, false)
+
+        const diagonal = isEqual(0, 0) && isEqual(1, 1) && isEqual(2, 2)
+            || isEqual(0, 2) && isEqual(1, 1) && isEqual(2, 0)
+
+        return horizontal
+            || vertical
+            || diagonal
+            || false
     }
+
+    checkGame() {
+        if (this.isWinner(this._userName)) return `${this._userName} won!`
+        if (this.isWinner(this._computerName)) return `${this._computerName} won!`
+        if (this._getFreeCellsCount() === 0) return `nobody won :–(`
+        return 'continue'
+    }
+
 
     _updateBoard(x, y, config = {}) {
         const { symbol = this._userMoveSymbol } = config
         this._board[x][y] = symbol
     }
 
-    _isCellFree(x, y) {
-        return !this._board[x][y]
+    _updateHistory(turn, x, y) {
+        this._history.push({ turn, x, y })
     }
 
     _throwException(msg) {
         throw new Error(msg)
     }
 
-    getMoveHistory() {
-        return this._history
+    _isCellFree(x, y) {
+        return !this._board[x][y]
     }
 
-    _updateHistory(turn, x, y) {
-        this._history.push({ turn, x, y })
+    _getFreeCellsCount() {
+        return this._board.reduce((total, row) =>
+            row.reduce((count, el) =>
+                el === '' ? ++count : count, total), 0)
     }
 
     _getRandomCoordinate() {
@@ -111,12 +128,6 @@ export default class Game {
         return [x, y]
     }
 
-    _getFreeCellsCount() {
-        return this._board.reduce((total, row) =>
-            row.reduce((count, el) =>
-                el === '' ? ++count : count, total), 0)
-    }
-
     _getSymbolForPlayer(player) {
         return player === this._userName
             ? this._userMoveSymbol
@@ -127,5 +138,4 @@ export default class Game {
         return (i, j) =>
             this._board[i][j] === symbol
     }
-
 }
