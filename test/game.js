@@ -1,7 +1,9 @@
 import { expect } from 'chai';
 import Game from '../src/Game';
 
+const userName = 'user'
 const userMoveSymbol = '×'
+const computerName = 'computer'
 const initialGameBoard = [
     ['', '', ''],
     ['', '', ''],
@@ -26,20 +28,50 @@ describe('Game', () => {
 
         expect(board[x][y].to.equal(userMoveSymbol))
     })
-})
 
-it('Throws an exception if user moves in taken cell', () => {
-    const x = 2, y = 2
+    it('Throws an exception if user moves in taken cell', () => {
+        const x = 2, y = 2
 
-    game.acceptUserMove(x, y)
-    const func = game.acceptUserMove.bind(game, x, y)
+        game.acceptUserMove(x, y)
+        const func = game.acceptUserMove.bind(game, x, y)
 
-    expect(func).to.throw('cell is already taken')
-})
+        expect(func).to.throw('cell is already taken')
+    })
 
-it('Computer moves in top left cell', () => {
-    game.createComputerMove()
-    const board = game.getState()
+    it('Computer moves in top left cell', () => {
+        game.createComputerMove()
+        const board = game.getState()
 
-    expect(board[0][0]).to.equal('o')
+        expect(board[0][0]).to.equal('o')
+    })
+
+
+    it('Game saves user\'s move in history', () => {
+        const x = 1, y = 1
+
+        game.acceptUserMove(x, y)
+        const history = game.getMoveHistory()
+
+        expect(history).to.deep.equal([{ turn: 'userName', x, y }])
+    })
+
+    it('Game saves computers\'s move in history', () => {
+        game.createComputerMove()
+        const history = game.getMoveHistory()
+
+        expect(history).to.deep.equal([{ turn: 'computerName', x: 0, y: 0 }])
+    })
+
+    it('Game saves 1 user\'s move and 1 computer\'s move in history', () => {
+        const x = 1, y = 1
+
+        game.acceptUserMove(x, y)
+        game.createComputerMove()
+        const history = game.getMoveHistory()
+
+        expect(history.length).to.equal(2)
+        expect(history[0].turn).to.equal(userName)
+        expect(history[1].turn).to.equal(computerName)
+    })
+
 })

@@ -1,7 +1,11 @@
 export default class Game {
+
     constructor() {
         this._userMoveSymbol = 'x'
         this._computerMoveSymbol = 'o'
+        this._userName = 'user'
+        this._computerName = 'computer'
+        this._history = []
         this._board = [
             ['', '', ''],
             ['', '', ''],
@@ -22,12 +26,15 @@ export default class Game {
             return this._throwException('cell is already taken')
         }
 
+        this._updateHistory(this._userName, x, y)
+
         // изменение только левой верхней клетки
         this._updateBoard(x, y)
     }
 
     createComputerMove() {
         // this._board[0][0] = 'o'     // нолик в верхнюю левую клетку
+        this._updateHistory(this._computerName, 0, 0)
         this._updateBoard(0, 0, {
             symbol: this._computerMoveSymbol
         })
@@ -45,4 +52,13 @@ export default class Game {
     _throwException(msg) {
         throw new Error(msg)
     }
+
+    getMoveHistory() {
+        return this._history
+    }
+
+    _updateHistory(turn, x, y) {
+        this._history.push({ turn, x, y })
+    }
+
 }
