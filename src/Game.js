@@ -59,6 +59,21 @@ export default class Game {
         })
     }
 
+    isWinner(player) {
+        const symbol = player === this._userName
+            ? this._userMoveSymbol
+            : this._computerMoveSymbol
+
+        const win = [...Array(this._fieldSize).keys()].reduce((res, i) => {
+            return this._board[i][0] === symbol
+                && this._board[i][1] === symbol
+                && this._board[i][2] === symbol
+                || res
+        }, false)
+
+        return win
+    }
+
     _updateBoard(x, y, config = {}) {
         const { symbol = this._userMoveSymbol } = config
         this._board[x][y] = symbol
@@ -100,6 +115,17 @@ export default class Game {
         return this._board.reduce((total, row) =>
             row.reduce((count, el) =>
                 el === '' ? ++count : count, total), 0)
+    }
+
+    _getSymbolForPlayer(player) {
+        return player === this._userName
+            ? this._userMoveSymbol
+            : this._computerMoveSymbol
+    }
+
+    _checkCellEqual(symbol) {
+        return (i, j) =>
+            this._board[i][j] === symbol
     }
 
 }
