@@ -36,3 +36,10 @@ it('Throws an exception if user moves in taken cell', () => {
 
     expect(func).to.throw('cell is already taken')
 })
+
+it('Computer moves in top left cell', () => {
+    game.createComputerMove()
+    const board = game.getState()
+
+    expect(board[0][0]).to.equal('o')
+})
